@@ -1,0 +1,30 @@
+# config/powersync.yaml
+
+# Раздел для репликации данных из Postgres
+replication:
+  connections:
+    - type: postgresql
+      # URI для подключения к исходной базе данных
+      uri: ${PS_PG_URI}
+      sslmode: disable
+
+storage:
+  type: postgresql
+  uri: postgres://${PS_STORAGE_USER}:${PS_STORAGE_PASSWORD}@storage-db:5432/${PS_STORAGE_DB}
+  sslmode: disable
+
+# Порт API PowerSync (должен совпадать с PS_PORT)
+port: 8080
+
+sync_rules:
+  content: |
+    bucket_definitions:
+      global:
+        data:
+          - SELECT * FROM lists
+          - SELECT * FROM todos
+
+# Пример настроек для аутентификации клиентов (для Supabase интеграции)
+client_auth:
+  supabase: true
+  supabase_jwt_secret: your_supabase_jwt_secret

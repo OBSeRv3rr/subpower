@@ -1,0 +1,77 @@
+services:
+  pg-db:
+    image: supabase/postgres:14.1.0
+    container_name: pg-db
+    restart: always
+    environment:
+      PGPORT: ${PG_DATABASE_PORT}
+      POSTGRES_DB: ${PG_DATABASE_NAME}
+      POSTGRES_USER: ${PG_DATABASE_USER}
+      POSTGRES_PASSWORD: ${PG_DATABASE_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "${PG_DATABASE_PORT}:${PG_DATABASE_PORT}"
+    command: ["postgres", "-c", "wal_level=logical"]
+
+  # Сервис для PowerSync
+  powersync:
+    image: journeyapps/powersync-service:latest
+    container_name: powersync
+    restart: always
+    depends_on:
+      - pg-db
+    volumes:
+      - ./config:/config
+    environment:
+      POWERSYNC_CONFIG_PATH: /config/powersync.yaml
+      PS_PG_URI: postgres://${PG_DATABASE_USER}:${PG_DATABASE_PASSWORD}@pg-db:${PG_DATABASE_PORT}/${PG_DATABASE_NAME}
+      # Порт, на котором будет работать API PowerSync
+      PS_PORT: ${PS_PORT}
+    ports:
+      - "${PS_PORT}:${PS_PORT}"
+
+ # 🔒 VPN (WireGuard)
+  vpn:
+    image: linuxserver/wireguard
+    container_name: vpn
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Moscow
+      SERVERURL: "auto"
+      SERVERPORT: 51820
+    volumes:
+      - vpn_config:/config
+      - /lib/modules:/lib/modules
+    ports:
+      - "51820:51820/udp"
+    networks:
+      - app_network
+
+  # 🌍 DNS-сервер (CoreDNS)
+  dns:
+    image: coredns/coredns
+    container_name: dns
+    ports:
+      - "49155:53/udp"
+      - "49155:53/tcp"
+    volumes:
+      - ./Corefile:/Corefile
+    restart: always
+    cap_add:
+      - NET_BIND_SERVICE
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  pg_data:
+  vpn_config:

@@ -1,0 +1,9 @@
+. {
+    forward . 83.220.169.155
+    cache
+    errors
+    log
+    health :8080
+    prometheus :9153
+}
+
