@@ -1,6 +1,6 @@
 services:
   pg-db:
-    image: supabase/postgres:14.1.0
+    image: supabase/postgres:15.8.1.036
     container_name: pg-db
     restart: always
     environment:
@@ -14,12 +14,31 @@ services:
     ports:
       - "${PG_DATABASE_PORT}:${PG_DATABASE_PORT}"
     command: ["postgres", "-c", "wal_level=logical"]
+    networks:
+      - app_network
+  # pg-db:
+  #   image: supabase/postgres:14.1.0
+  #   container_name: pg-db
+  #   restart: always
+  #   environment:
+  #     PGPORT: ${PG_DATABASE_PORT}
+  #     POSTGRES_DB: ${PG_DATABASE_NAME}
+  #     POSTGRES_USER: ${PG_DATABASE_USER}
+  #     POSTGRES_PASSWORD: ${PG_DATABASE_PASSWORD}
+  #   volumes:
+  #     - pg_data:/var/lib/postgresql/data
+  #     - ./init-scripts:/docker-entrypoint-initdb.d
+  #   ports:
+  #     - "${PG_DATABASE_PORT}:${PG_DATABASE_PORT}"
+  #   command: ["postgres", "-c", "wal_level=logical"]
+  #   networks:
+  #     - app_network
 
   # Сервис для PowerSync
   powersync:
     image: journeyapps/powersync-service:latest
     container_name: powersync
-    restart: always
+#    restart: always
     depends_on:
       - pg-db
     volumes:
@@ -31,6 +50,8 @@ services:
       PS_PORT: ${PS_PORT}
     ports:
       - "${PS_PORT}:${PS_PORT}"
+    networks:
+      - app_network
 
  # 🔒 VPN (WireGuard)
   vpn:

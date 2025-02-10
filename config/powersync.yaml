@@ -10,7 +10,7 @@ replication:
 
 storage:
   type: postgresql
-  uri: postgres://${PS_STORAGE_USER}:${PS_STORAGE_PASSWORD}@storage-db:5432/${PS_STORAGE_DB}
+  uri: postgres://${PS_STORAGE_USER}:${PS_STORAGE_PASSWORD}@pg-db:5432/${PS_STORAGE_DB}
   sslmode: disable
 
 # Порт API PowerSync (должен совпадать с PS_PORT)
